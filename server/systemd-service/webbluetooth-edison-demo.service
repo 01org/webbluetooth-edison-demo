@@ -1,0 +1,11 @@
+[Unit]
+Description=Web Bluetooth Edison Demo startup service
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/node /home/root/webbluetooth-edison-demo/server/main.js
+Environment='NODE_PATH=/usr/lib/node_modules/'
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
