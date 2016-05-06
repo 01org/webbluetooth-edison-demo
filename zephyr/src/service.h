@@ -19,4 +19,4 @@
  */
 
 void service_init(void);
-void service_notify(void);
+void service_notify(struct bt_conn *);

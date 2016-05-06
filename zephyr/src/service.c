@@ -92,7 +92,11 @@ void pwm_write(void)
 
 static void blvl_ccc_cfg_changed(uint16_t value)
 {
-    simulate_blvl = (value == BT_GATT_CCC_NOTIFY) ? 1 : 0;
+    printk("blvl_ccc_cfg_changed: %d\n", value);
+    if ((value == BT_GATT_CCC_NOTIFY) || (value == BT_GATT_CCC_INDICATE))
+        simulate_blvl = 1;
+    else
+        simulate_blvl = 0;
 }
 
 static ssize_t read_temperature(struct bt_conn *conn, const struct bt_gatt_attr *attr,
@@ -136,8 +140,8 @@ static struct bt_gatt_attr attrs[] = {
         BT_GATT_CHRC_READ | BT_GATT_CHRC_NOTIFY),
     BT_GATT_DESCRIPTOR(BT_UUID_TEMP, BT_GATT_PERM_READ,
         read_temperature, NULL, &temperature),
-    BT_GATT_CUD(SENSOR_1_NAME, BT_GATT_PERM_READ),
     BT_GATT_CCC(blvl_ccc_cfg, blvl_ccc_cfg_changed),
+    BT_GATT_CUD(SENSOR_1_NAME, BT_GATT_PERM_READ),
 
     /* RGB Led */
     BT_GATT_CHARACTERISTIC(BT_UUID_RGB,
@@ -159,7 +163,7 @@ void service_init(void)
     bt_gatt_register(attrs, ARRAY_SIZE(attrs));
 }
 
-void service_notify(void)
+void service_notify(struct bt_conn *conn)
 {
     if (!simulate_blvl) {
         return;
@@ -170,6 +174,7 @@ void service_notify(void)
         /* Software eco temperature charger */
         temperature = 20;
     }
+    printk("service_notify: temperature is %d\n", temperature);
 
-    bt_gatt_notify(NULL, &attrs[2], &temperature, sizeof(temperature));
+    bt_gatt_notify(conn, &attrs[2], &temperature, sizeof(temperature));
 }
